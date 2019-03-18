@@ -1,15 +1,42 @@
 import React, { Component } from "react";
-import { map } from "async";
-import { compose, graphql } from "react-apollo";
 import gql from "graphql-tag";
+import { compose, graphql } from "react-apollo";
+import { graphqlMutation } from "aws-appsync-react";
 import { listTodos } from "./graphql/queries";
+import { createTodo } from "./graphql/mutations";
 
 class App extends Component {
+  state = { todo: "" };
+
+  addTodo = async () => {
+    if (this.state.todo === "") {
+      return;
+    }
+
+    const response = await this.props.createTodo({
+      input: {
+        name: this.state.todo,
+        completed: false
+      }
+    });
+
+    this.setState({ todo: "" });
+    console.log("response", response);
+  };
+
   render() {
     return (
       <div>
+        <div>
+          <input
+            onChange={e => this.setState({ todo: e.target.value })}
+            value={this.state.todo}
+            placeholder="Enter a name..."
+          />
+          <button onClick={this.addTodo}>Add</button>
+        </div>
         {this.props.todos.map(item => (
-          <div>{item.name}</div>
+          <div key={item.id}>{item.name}</div>
         ))}
       </div>
     );
@@ -17,9 +44,10 @@ class App extends Component {
 }
 
 export default compose(
+  graphqlMutation(gql(createTodo), gql(listTodos), "Todo"),
   graphql(gql(listTodos), {
     options: {
-      fetchPolicy: "cache-and-network"
+      fetchPolicy: "network-only"
     },
     props: props => ({
       todos: props.data.listTodos ? props.data.listTodos.items : []
