@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { compose, graphql } from "react-apollo";
 import { graphqlMutation } from "aws-appsync-react";
 import { listTodos } from "./graphql/queries";
-import { createTodo } from "./graphql/mutations";
+import { createTodo, deleteTodo } from "./graphql/mutations";
 
 class App extends Component {
   state = { todo: "" };
@@ -24,6 +24,11 @@ class App extends Component {
     console.log("response", response);
   };
 
+  deleteTodo = async id => {
+    const response = await this.props.deleteTodo({ input: { id } });
+    console.log("response", response);
+  };
+
   render() {
     return (
       <div>
@@ -36,7 +41,12 @@ class App extends Component {
           <button onClick={this.addTodo}>Add</button>
         </div>
         {this.props.todos.map(item => (
-          <div key={item.id}>{item.name}</div>
+          <div key={item.id}>
+            {item.name}{" "}
+            <button onClick={this.deleteTodo.bind(this, item.id)}>
+              remove
+            </button>
+          </div>
         ))}
       </div>
     );
@@ -45,6 +55,7 @@ class App extends Component {
 
 export default compose(
   graphqlMutation(gql(createTodo), gql(listTodos), "Todo"),
+  graphqlMutation(gql(deleteTodo), gql(listTodos), "Todo"),
   graphql(gql(listTodos), {
     options: {
       fetchPolicy: "network-only"
