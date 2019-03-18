@@ -58,7 +58,7 @@ export default compose(
   graphqlMutation(gql(deleteTodo), gql(listTodos), "Todo"),
   graphql(gql(listTodos), {
     options: {
-      fetchPolicy: "network-only"
+      fetchPolicy: "cache-and-network"
     },
     props: props => ({
       todos: props.data.listTodos ? props.data.listTodos.items : []
